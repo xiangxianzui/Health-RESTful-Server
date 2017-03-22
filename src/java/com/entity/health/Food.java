@@ -62,6 +62,8 @@ public class Food implements Serializable {
     @NotNull
     @Column(name = "Serving")
     private double serving;
+    @Column(name = "Category")
+    private String category;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "food")
     private Collection<Userfood> userfoodCollection;
 
@@ -72,12 +74,13 @@ public class Food implements Serializable {
         this.id = id;
     }
 
-    public Food(Integer id, String name, double calorie, double fat, double serving) {
+    public Food(Integer id, String name, double calorie, double fat, double serving, String category) {
         this.id = id;
         this.name = name;
         this.calorie = calorie;
         this.fat = fat;
         this.serving = serving;
+        this.category = category;
     }
 
     public Integer getId() {
@@ -118,6 +121,14 @@ public class Food implements Serializable {
 
     public void setServing(double serving) {
         this.serving = serving;
+    }
+    
+    public String getCategory(){
+        return category;
+    }
+    
+    public void setCategory(String category){
+        this.category = category;
     }
 
     @XmlTransient

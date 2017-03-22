@@ -5,9 +5,11 @@
  */
 package com.entity.health.service;
 
+import com.entity.health.User;
 import com.entity.health.Userreport;
 import com.entity.health.UserreportPK;
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -24,6 +26,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
+import net.sf.json.JSONArray;
 
 /**
  *
@@ -119,7 +122,7 @@ public class UserreportFacadeREST extends AbstractFacade<Userreport> {
     /*---------------static query------------------*/
     @GET
     @Path("findByUserId/{userId}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Userreport> findByUserId(@PathParam("userId") int userId){
         Query query = em.createNamedQuery("Userreport.findByUserId");
         query.setParameter("userId", userId);
@@ -128,7 +131,7 @@ public class UserreportFacadeREST extends AbstractFacade<Userreport> {
     
     @GET
     @Path("findByDate/{date}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Userreport> findByDate(@PathParam("date") Date date){
         Query query = em.createNamedQuery("Userreport.findByDate");
         query.setParameter("date", date);
@@ -137,7 +140,7 @@ public class UserreportFacadeREST extends AbstractFacade<Userreport> {
     
     @GET
     @Path("findByCalConsumed/{calConsumed}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Userreport> findByCalConsumed(@PathParam("calConsumed") double calConsumed){
         Query query = em.createNamedQuery("Userreport.findByCalConsumed");
         query.setParameter("calConsumed", calConsumed);
@@ -146,7 +149,7 @@ public class UserreportFacadeREST extends AbstractFacade<Userreport> {
     
     @GET
     @Path("findByCalBurned/{calBurned}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Userreport> findByCalBurned(@PathParam("calBurned") double calBurned){
         Query query = em.createNamedQuery("Userreport.findByCalBurned");
         query.setParameter("calBurned", calBurned);
@@ -155,7 +158,7 @@ public class UserreportFacadeREST extends AbstractFacade<Userreport> {
     
     @GET
     @Path("findBySteps/{steps}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Userreport> findBySteps(@PathParam("steps") double steps){
         Query query = em.createNamedQuery("Userreport.findBySteps");
         query.setParameter("steps", steps);
@@ -164,7 +167,7 @@ public class UserreportFacadeREST extends AbstractFacade<Userreport> {
     
     @GET
     @Path("findByCalorieGoal/{calorieGoal}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Userreport> findByCalorieGoal(@PathParam("calorieGoal") double calorieGoal){
         Query query = em.createNamedQuery("Userreport.findByCalorieGoal");
         query.setParameter("calorieGoal", calorieGoal);
@@ -173,7 +176,7 @@ public class UserreportFacadeREST extends AbstractFacade<Userreport> {
     
     @GET
     @Path("findByRemaining/{remaining}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Userreport> findByRemaining(@PathParam("remaining") double remaining){
         Query query = em.createNamedQuery("Userreport.findByRemaining");
         query.setParameter("remaining", remaining);
@@ -183,17 +186,82 @@ public class UserreportFacadeREST extends AbstractFacade<Userreport> {
     /*-----------dynamic query-------------*/
     @GET
     @Path("findByUserIdAndDate/{userId}/{date}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Userreport> findByUserIdAndDate(@PathParam("userId") int userId, @PathParam("date") Date date){
         TypedQuery<Userreport> q = em.createQuery("SELECT u FROM Userreport u WHERE u.userreportPK.userId='"+userId+"' AND u.userreportPK.date='"+date+"'", Userreport.class);
         return q.getResultList();
     }
     
     @GET
+    @Path("findByUserName/{userName}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<Userreport> findByUserName(@PathParam("userName") String userName){
+        TypedQuery<Userreport> q = em.createQuery("SELECT u FROM Userreport u WHERE u.user.name='"+userName+"'", Userreport.class);
+        return q.getResultList();
+    }
+    
+    @GET
     @Path("findByUserNameAndDate/{userName}/{date}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Userreport> findByUserNameAndDate(@PathParam("userName") String userName, @PathParam("date") Date date){
         TypedQuery<Userreport> q = em.createQuery("SELECT u FROM Userreport u WHERE u.user.name='"+userName+"' AND u.userreportPK.date='"+date+"'", Userreport.class);
         return q.getResultList();
+    }
+    
+    @GET
+    @Path("findByUserNameAndStartDateAndEndDate/{userName}/{startDate}/{endDate}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<Userreport> findByUserNameAndStartDateAndEndDate(@PathParam("userName") String userName, @PathParam("startDate") Date startDate, @PathParam("endDate") Date endDate){
+        TypedQuery<Userreport> q = em.createQuery("SELECT u FROM Userreport u WHERE u.user.name='"+userName+"' AND u.userreportPK.date>='"+startDate+"' AND u.userreportPK.date<='"+endDate+"'", Userreport.class);
+        return q.getResultList();
+    }
+    
+    @GET
+    @Path("addUserreport/{name}/{date}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String addUserreport(@PathParam("name") String name, @PathParam("date") Date date){
+        System.out.println("here");
+        List<Userreport> u = findByUserNameAndDate(name, date);
+        if(u != null){  
+            if(u.isEmpty()){
+                List<String> jsonList = new ArrayList();
+                jsonList.add("status");
+                jsonList.add("0");
+                JSONArray jsonArray = JSONArray.fromObject(jsonList);
+                System.out.println(jsonArray.toString());
+                TypedQuery<User> q = em.createQuery("SELECT u FROM User u WHERE u.name='"+name+"'", User.class);
+                User user_this = q.getResultList().get(0);
+                int id = user_this.getId();
+                Userreport userreportMy = new Userreport();
+                UserreportPK userreportPKMy = new UserreportPK();
+                userreportPKMy.setUserId(id);
+                userreportPKMy.setDate(date);
+                userreportMy.setUserreportPK(userreportPKMy);
+                userreportMy.setCalConsumed(0);
+                userreportMy.setCalBurned(0);
+                userreportMy.setSteps(0);
+                userreportMy.setCalorieGoal(0);
+                userreportMy.setRemaining(0);
+                super.create(userreportMy);
+                return jsonArray.toString();
+            }
+            else{
+                List<String> jsonList = new ArrayList();
+                jsonList.add("status");
+                jsonList.add("1");
+                JSONArray jsonArray = JSONArray.fromObject(jsonList);
+                System.out.println(jsonArray.toString());
+                return jsonArray.toString();
+            }
+        }
+        else{
+            List<String> jsonList = new ArrayList();
+            jsonList.add("status");
+            jsonList.add("1");
+            JSONArray jsonArray = JSONArray.fromObject(jsonList);
+            System.out.println(jsonArray.toString());
+            return jsonArray.toString();
+        }
+        
     }
 }

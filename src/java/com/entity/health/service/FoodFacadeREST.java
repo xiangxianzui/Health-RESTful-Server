@@ -66,7 +66,8 @@ public class FoodFacadeREST extends AbstractFacade<Food> {
 
     @GET
     @Override
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Path("findAll")
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Food> findAll() {
         return super.findAll();
     }
@@ -93,7 +94,7 @@ public class FoodFacadeREST extends AbstractFacade<Food> {
     /*---------static query-----------*/
     @GET
     @Path("findById/{id}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Food> findById(@PathParam("id") int id){
         Query query = em.createNamedQuery("Food.findById");
         query.setParameter("id", id);
@@ -102,7 +103,7 @@ public class FoodFacadeREST extends AbstractFacade<Food> {
     
     @GET
     @Path("findByName/{name}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Food> findByName(@PathParam("name") String name){
         Query query = em.createNamedQuery("Food.findByName");
         query.setParameter("name", name);
@@ -111,7 +112,7 @@ public class FoodFacadeREST extends AbstractFacade<Food> {
     
     @GET
     @Path("findByCalorie/{calorie}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Food> findByCalorie(@PathParam("calorie") double calorie){
         Query query = em.createNamedQuery("Food.findByCalorie");
         query.setParameter("calorie", calorie);
@@ -120,7 +121,7 @@ public class FoodFacadeREST extends AbstractFacade<Food> {
     
     @GET
     @Path("findByFat/{fat}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Food> findByFat(@PathParam("fat") double fat){
         Query query = em.createNamedQuery("Food.findByFat");
         query.setParameter("fat", fat);
@@ -129,7 +130,7 @@ public class FoodFacadeREST extends AbstractFacade<Food> {
     
     @GET
     @Path("findByServing/{serving}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Food> findByServing(@PathParam("serving") double serving){
         Query query = em.createNamedQuery("Food.findByServing");
         query.setParameter("serving", serving);
@@ -138,10 +139,20 @@ public class FoodFacadeREST extends AbstractFacade<Food> {
     
     /*-----------dynamic query------------*/
     @GET
-    @Path("fincByNameANDServing/{name}/{serving}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public List<Food> fincByNameANDServing(@PathParam("name") String name, @PathParam("serving") double serving){
+    @Path("findByNameANDServing/{name}/{serving}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<Food> findByNameANDServing(@PathParam("name") String name, @PathParam("serving") double serving){
         TypedQuery<Food> q = em.createQuery("SELECT f FROM Food f WHERE f.name LIKE '%"+name+"%' AND f.serving='"+serving+"'", Food.class);
         return q.getResultList();
     }
+    
+    @GET
+    @Path("findByCategory/{category}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<Food> findByCategory(@PathParam("category") String category){
+        TypedQuery<Food> q = em.createQuery("SELECT f FROM Food f WHERE f.category='"+category+"'", Food.class);
+        return q.getResultList();
+    }
+    
+    
 }

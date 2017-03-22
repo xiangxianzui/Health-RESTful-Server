@@ -5,10 +5,13 @@
  */
 package com.entity.health.service;
 
+import com.entity.health.Food;
+import com.entity.health.User;
 import com.entity.health.Userfood;
 import com.entity.health.UserfoodPK;
 import java.sql.Date;
 import java.sql.Time;
+import java.util.ArrayList;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -25,6 +28,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
+import net.sf.json.JSONArray;
 
 /**
  *
@@ -124,7 +128,7 @@ public class UserfoodFacadeREST extends AbstractFacade<Userfood> {
     /*-----------------------------------------------------------*/
     @GET
     @Path("addUserfood/{userId}/{foodId}/{date}/{time}/{amount}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public void addUserfood(@PathParam("userId") int userId, @PathParam("foodId") int foodId, @PathParam("date") Date date, @PathParam("time") Time time, @PathParam("amount") double amount) {
         UserfoodPK userfoodPKMy = new UserfoodPK();
         userfoodPKMy.setUserId(userId);
@@ -139,29 +143,37 @@ public class UserfoodFacadeREST extends AbstractFacade<Userfood> {
 
     @GET
     @Path("addUserfoodByName/{userName}/{foodName}/{date}/{time}/{amount}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public String addUserfoodByName(
             @PathParam("userName") String userName,
             @PathParam("foodName") String foodName,
             @PathParam("date") Date date, 
             @PathParam("time") Time time,
             @PathParam("amount") double amount) {
-        String executeResult = "";
-        TypedQuery<Userfood> q_user = em.createQuery("SELECT u from Userfood u where u.user.name='"+userName+"'", Userfood.class);
-        if(q_user.getResultList().isEmpty()){
-            executeResult = "The user you input does not exist!";
-            return executeResult;
+        
+        TypedQuery<User> q_user = em.createQuery("SELECT u from User u where u.name='"+userName+"'", User.class);
+        if(q_user.getResultList().isEmpty()){//The user you input does not exist!
+            List<String> jsonList = new ArrayList();
+            jsonList.add("status");
+            jsonList.add("1");
+            JSONArray jsonArray = JSONArray.fromObject(jsonList);
+            System.out.println("user not exist");
+            return jsonArray.toString();
         }
-        TypedQuery<Userfood> q_food = em.createQuery("SELECT u from Userfood u where u.food.name='"+foodName+"'", Userfood.class);        
-        if(q_food.getResultList().isEmpty()){
-            executeResult = "The food you input does not exist!";
-            return executeResult;
+        TypedQuery<Food> q_food = em.createQuery("SELECT f from Food f where f.name='"+foodName+"'", Food.class);        
+        if(q_food.getResultList().isEmpty()){//The food you input does not exist!
+            List<String> jsonList = new ArrayList();
+            jsonList.add("status");
+            jsonList.add("1");
+            JSONArray jsonArray = JSONArray.fromObject(jsonList);
+            System.out.println("food not exist");
+            return jsonArray.toString();
         }
         TypedQuery<Userfood> q = em.createQuery("SELECT u from Userfood u where u.user.name='"+userName+"' AND u.food.name='"+foodName+"' AND u.userfoodPK.date='"+date+"'", Userfood.class);
         List<Userfood> results = q.getResultList();
-        if(results.isEmpty()){
-            int userId = q_user.getResultList().get(0).getUserfoodPK().getUserId();
-            int foodId = q_food.getResultList().get(0).getUserfoodPK().getFoodId();
+        if(results.isEmpty()){//Add success!
+            int userId = q_user.getResultList().get(0).getId();
+            int foodId = q_food.getResultList().get(0).getId();
             UserfoodPK userfoodPKMy = new UserfoodPK();
             userfoodPKMy.setUserId(userId);
             userfoodPKMy.setFoodId(foodId);
@@ -171,11 +183,19 @@ public class UserfoodFacadeREST extends AbstractFacade<Userfood> {
             userfoodMy.setTime(time);
             userfoodMy.setAmount(amount);
             super.create(userfoodMy);
-            executeResult = "Add success!";
-            return executeResult;
-        }else{
-            executeResult = "User "+userName+" has already eaten "+foodName+" in "+date;
-            return executeResult;
+            List<String> jsonList = new ArrayList();
+            jsonList.add("status");
+            jsonList.add("0");
+            JSONArray jsonArray = JSONArray.fromObject(jsonList);
+            System.out.println(jsonArray.toString());
+            return jsonArray.toString();
+        }else{//fail
+            List<String> jsonList = new ArrayList();
+            jsonList.add("status");
+            jsonList.add("2");
+            JSONArray jsonArray = JSONArray.fromObject(jsonList);
+            System.out.println("user already eat food");
+            return jsonArray.toString();
         }
     }  
 
@@ -183,7 +203,7 @@ public class UserfoodFacadeREST extends AbstractFacade<Userfood> {
     
     @GET
     @Path("findByFoodNameAndDate/{foodName}/{date}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Userfood> findByFoodNameAndDate(@PathParam("foodName") String foodName, @PathParam("date") Date date){
         Query query = em.createNamedQuery("Userfood.findByFoodNameAndDate");
         query.setParameter("foodName", foodName);
@@ -193,7 +213,7 @@ public class UserfoodFacadeREST extends AbstractFacade<Userfood> {
     
     @GET
     @Path("findByUserId/{userId}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Userfood> findByUserId(@PathParam("userId") int userId) {
         Query query = em.createNamedQuery("Userfood.findByUserId");
         query.setParameter("userId", userId);
@@ -202,7 +222,7 @@ public class UserfoodFacadeREST extends AbstractFacade<Userfood> {
 
     @GET
     @Path("findByFoodId/{foodId}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Userfood> findByFoodId(@PathParam("foodId") int foodId) {
         Query query = em.createNamedQuery("Userfood.findByFoodId");
         query.setParameter("foodId", foodId);
@@ -211,7 +231,7 @@ public class UserfoodFacadeREST extends AbstractFacade<Userfood> {
 
     @GET
     @Path("findByDate/{date}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Userfood> findByDate(@PathParam("date") Date date) {
         Query query = em.createNamedQuery("Userfood.findByDate");
         query.setParameter("date", date);
@@ -220,7 +240,7 @@ public class UserfoodFacadeREST extends AbstractFacade<Userfood> {
 
     @GET
     @Path("findByTime/{time}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Userfood> findByTime(@PathParam("time") Time time) {
         Query query = em.createNamedQuery("Userfood.findByTime");
         query.setParameter("time", time);
@@ -229,7 +249,7 @@ public class UserfoodFacadeREST extends AbstractFacade<Userfood> {
 
     @GET
     @Path("findByAmount/{amount}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Userfood> findByAmount(@PathParam("amount") double amount) {
         Query query = em.createNamedQuery("Userfood.findByAmount");
         query.setParameter("amount", amount);
@@ -239,7 +259,7 @@ public class UserfoodFacadeREST extends AbstractFacade<Userfood> {
     /*------------------------dynamic query----------------------*/
     @GET
     @Path("findByUserIdAndFoodId/{userId}/{foodId}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Userfood> findByUserIdAndFoodId(@PathParam("userId") int userId, @PathParam("foodId") int foodId) {
         TypedQuery<Userfood> q = em.createQuery("SELECT u FROM Userfood u WHERE u.userfoodPK.userId='" + userId + "' AND u.userfoodPK.foodId='" + foodId + "'", Userfood.class);
         return q.getResultList();
@@ -247,7 +267,7 @@ public class UserfoodFacadeREST extends AbstractFacade<Userfood> {
 
     @GET
     @Path("findByUserNameAndFoodName/{userName}/{foodName}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Userfood> findByUserNameAndFoodName(@PathParam("userName") String userName, @PathParam("foodName") String foodName) {
         TypedQuery<Userfood> q = em.createQuery("SELECT u FROM Userfood u WHERE u.user.name='" + userName + "' AND u.food.name='" + foodName + "'", Userfood.class);
         return q.getResultList();
@@ -255,11 +275,28 @@ public class UserfoodFacadeREST extends AbstractFacade<Userfood> {
 
     @GET
     @Path("findByUserNameAndDate/{userName}/{date}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public List<Userfood> findByUserNameAndDate(@PathParam("userName") String userName, @PathParam("date") Date date) {
         TypedQuery<Userfood> q = em.createQuery("SELECT u FROM Userfood u WHERE u.user.name='" + userName + "' AND u.userfoodPK.date='" + date + "'", Userfood.class);
         return q.getResultList();
     }
+    
+    @GET
+    @Path("findByUserNameAndDateOrderByTime/{userName}/{date}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<Userfood> findByUserNameAndDateOrderByTime(@PathParam("userName") String userName, @PathParam("date") Date date) {
+        TypedQuery<Userfood> q = em.createQuery("SELECT u FROM Userfood u WHERE u.user.name='"+userName+"' AND u.userfoodPK.date='"+date+"' ORDER BY u.time", Userfood.class);
+        return q.getResultList();
+    }
+    
+    @GET
+    @Path("findByUserNameAndDateOrderByFoodName/{userName}/{date}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<Userfood> findByUserNameAndDateOrderByFoodName(@PathParam("userName") String userName, @PathParam("date") Date date) {
+        TypedQuery<Userfood> q = em.createQuery("SELECT u FROM Userfood u WHERE u.user.name='"+userName+"' AND u.userfoodPK.date='"+date+"' ORDER BY u.food.name", Userfood.class);
+        return q.getResultList();
+    }
+    
     
     
 }
